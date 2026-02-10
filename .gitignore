@@ -1,0 +1,55 @@
+# -----------------------------
+# OS / Editor
+# -----------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -----------------------------
+# .NET build artifacts
+# -----------------------------
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# -----------------------------
+# User-specific Visual Studio / Rider files
+# -----------------------------
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# -----------------------------
+# Test and coverage artifacts
+# -----------------------------
+TestResults/
+**/TestResults/
+*.trx
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+# -----------------------------
+# Benchmark / profiling output
+# -----------------------------
+BenchmarkDotNet.Artifacts/
+
+# -----------------------------
+# Logs and temp files
+# -----------------------------
+*.log
+*.tmp
+*.temp
+
+# -----------------------------
+# NuGet cache folders (local)
+# -----------------------------
+.nuget/
+packages/

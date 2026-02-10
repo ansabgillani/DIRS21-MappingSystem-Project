@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/MappingSystem.Sample/MappingSystem.Sample.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Core/Abstractions/MappingSystem.Abstractions.csproj" />
+    <Project Path="src/Core/Foundation/MappingSystem.Core.csproj" />
+    <Project Path="src/Core/Extensions/MappingSystem.Extensions.csproj" />
+    <Project Path="src/Core/Implementation/MappingSystem.Implementation.csproj" />
+    <Project Path="src/Models/MappingSystems.Models.csproj" />
+    <Project Path="src/Partners/Google/MappingSystems.Partners.Google.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MappingSystem.IntegrationTests/MappingSystem.IntegrationTests.csproj" />
+    <Project Path="tests/MappingSystem.PerformanceTests/MappingSystem.PerformanceTests.csproj" />
+    <Project Path="tests/MappingSystem.UnitTests/MappingSystem.UnitTests.csproj" />
+  </Folder>
+</Solution>
