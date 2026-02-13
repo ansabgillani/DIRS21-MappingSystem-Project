@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\Foundation\MappingSystem.Core.csproj" />
+    <ProjectReference Include="..\..\src\Core\Extensions\MappingSystem.Extensions.csproj" />
+    <ProjectReference Include="..\..\src\Core\Abstractions\MappingSystem.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Models\MappingSystems.Models.csproj" />
+    <ProjectReference Include="..\..\src\Partners\Google\MappingSystems.Partners.Google.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
