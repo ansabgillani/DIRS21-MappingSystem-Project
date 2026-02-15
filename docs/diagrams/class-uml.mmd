@@ -1,0 +1,141 @@
+classDiagram
+    direction LR
+
+    %% ---------- Visual style ----------
+    classDef core fill:#0f172a,stroke:#38bdf8,stroke-width:1.2px,color:#e2e8f0;
+    classDef impl fill:#111827,stroke:#a78bfa,stroke-width:1.2px,color:#e5e7eb;
+    classDef conv fill:#0b1f2a,stroke:#34d399,stroke-width:1.2px,color:#d1fae5;
+    classDef contract fill:#1f2937,stroke:#f59e0b,stroke-width:1.2px,color:#fef3c7;
+    classDef util fill:#1f2937,stroke:#f472b6,stroke-width:1.2px,color:#fce7f3;
+
+    namespace MappingSystem.Core {
+        class IMapHandler {
+            <<interface>>
+            +Map~TSource,TTarget~(source) TTarget
+            +Map(source, sourceType, targetType) object
+        }
+
+        class IMapperRegistry {
+            <<interface>>
+            +TryGetMapper(sourceType, targetType, out mapper) bool
+            +TryGetMapper~TSource,TTarget~(out mapper) bool
+            +Register(sourceType, targetType, mapper)
+            +Register~TSource,TTarget~(mapper)
+            +IsRegistered(sourceType, targetType) bool
+        }
+
+        class IMapperFactory {
+            <<interface>>
+            +CreateMapper(sourceType, targetType) object
+            +CreateMapper~TSource,TTarget~() Func~TSource,TTarget~
+        }
+
+        class IMappingConvention {
+            <<interface>>
+            +CanMap(sourceType, targetType) bool
+            +BuildExpression(sourceType, targetType) LambdaExpression
+        }
+    }
+
+    namespace MappingSystem.Abstractions {
+        class ITypeMapperT["ITypeMapper<TSource,TTarget>"] {
+            <<interface>>
+            +Map(source) TTarget
+        }
+    }
+
+    namespace MappingSystem.Implementation {
+        class MapHandler {
+            -_registry IMapperRegistry
+            -_factory IMapperFactory
+            +Map~TSource,TTarget~(source) TTarget
+            +Map(source, sourceType, targetType) object
+        }
+
+        class MapperRegistry {
+            -_mappers ConcurrentDictionary~(Type,Type), object~
+            +TryGetMapper(sourceType, targetType, out mapper) bool
+            +TryGetMapper~TSource,TTarget~(out mapper) bool
+            +Register(sourceType, targetType, mapper)
+            +Register~TSource,TTarget~(mapper)
+            +IsRegistered(sourceType, targetType) bool
+        }
+
+        class MapperFactory {
+            -_conventions IEnumerable~IMappingConvention~
+            -_mappingCache MappingCache
+            +CreateMapper(sourceType, targetType) object
+            +CreateMapper~TSource,TTarget~() Func~TSource,TTarget~
+        }
+
+        class MappingCache {
+            -_cache ConcurrentDictionary~(Type,Type), Delegate~
+            +TryGet(sourceType, targetType, out compiledDelegate) bool
+            +Store(sourceType, targetType, compiledDelegate)
+        }
+
+        class ICompiledMapper {
+            <<interface>>
+            +SourceType Type
+            +TargetType Type
+            +Map(source) object
+        }
+
+        class CompiledMapperT["CompiledMapper<TSource,TTarget>"] {
+            -_compiledDelegate Func~TSource,TTarget~
+            +Map(source) TTarget
+            +Map(source) object
+        }
+
+        class ExpressionBuilder {
+            <<static>>
+            +BuildPropertyMappingExpression(sourceType, targetType) LambdaExpression
+        }
+    }
+
+    namespace MappingSystem.Implementation.Conventions {
+        class IdentityConvention {
+            +CanMap(sourceType, targetType) bool
+            +BuildExpression(sourceType, targetType) LambdaExpression
+        }
+
+        class TypeMapperConvention {
+            -_serviceProvider IServiceProvider
+            +CanMap(sourceType, targetType) bool
+            +BuildExpression(sourceType, targetType) LambdaExpression
+        }
+
+        class CollectionMappingConvention {
+            +CanMap(sourceType, targetType) bool
+            +BuildExpression(sourceType, targetType) LambdaExpression
+        }
+
+        class PropertyConvention {
+            +CanMap(sourceType, targetType) bool
+            +BuildExpression(sourceType, targetType) LambdaExpression
+        }
+    }
+
+    IMapHandler <|.. MapHandler
+    IMapperRegistry <|.. MapperRegistry
+    IMapperFactory <|.. MapperFactory
+    ICompiledMapper <|.. CompiledMapperT
+    IMappingConvention <|.. IdentityConvention
+    IMappingConvention <|.. TypeMapperConvention
+    IMappingConvention <|.. CollectionMappingConvention
+    IMappingConvention <|.. PropertyConvention
+
+    MapHandler --> IMapperRegistry : uses
+    MapHandler --> IMapperFactory : uses
+    MapHandler ..> ICompiledMapper : executes
+
+    MapperFactory --> IMappingConvention : evaluates (ordered)
+    MapperFactory --> MappingCache : checks/stores delegate
+    MapperFactory --> CompiledMapperT : creates
+
+    MapperRegistry ..> CompiledMapperT : stores/resolves
+    PropertyConvention --> ExpressionBuilder : delegates
+
+    TypeMapperConvention --> IServiceProvider : resolve mapper
+    TypeMapperConvention ..> ITypeMapperT : resolves
+
