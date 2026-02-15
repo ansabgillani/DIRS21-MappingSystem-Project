@@ -23,14 +23,25 @@ var googleReservation = new GoogleReservation
 var iterations = 200_000;
 
 handler.Map<GoogleReservation, Reservation>(googleReservation);
+(Reservation)handler.Map(googleReservation, typeof(GoogleReservation), typeof(Reservation));
 
-var sw = Stopwatch.StartNew();
+var genericSw = Stopwatch.StartNew();
 for (var i = 0; i < iterations; i++)
 {
 	_ = handler.Map<GoogleReservation, Reservation>(googleReservation);
 }
 
-sw.Stop();
+genericSw.Stop();
+
+var runtimeSw = Stopwatch.StartNew();
+for (var i = 0; i < iterations; i++)
+{
+	_ = handler.Map(googleReservation, typeof(GoogleReservation), typeof(Reservation));
+}
+
+runtimeSw.Stop();
 Console.WriteLine($"Iterations: {iterations}");
-Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}ms");
-Console.WriteLine($"Throughput: {iterations / sw.Elapsed.TotalSeconds:N0} maps/sec");
+Console.WriteLine($"Generic Elapsed: {genericSw.ElapsedMilliseconds}ms");
+Console.WriteLine($"Generic Throughput: {iterations / genericSw.Elapsed.TotalSeconds:N0} maps/sec");
+Console.WriteLine($"Runtime Elapsed: {runtimeSw.ElapsedMilliseconds}ms");
+Console.WriteLine($"Runtime Throughput: {iterations / runtimeSw.Elapsed.TotalSeconds:N0} maps/sec");

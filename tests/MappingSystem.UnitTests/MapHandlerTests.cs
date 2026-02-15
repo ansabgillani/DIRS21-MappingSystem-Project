@@ -104,13 +104,29 @@ public class MapHandlerTests
     }
 
     [Fact]
-    public void Map_SameType_ReturnsIdenticalInstance()
+    public void Map_SameType_ReturnsDeepCopyInstance()
     {
         var source = new SimpleSource { Value = 42 };
 
         var result = _handler.Map<SimpleSource, SimpleSource>(source);
 
-        result.Should().BeSameAs(source);
+        result.Should().NotBeSameAs(source);
+        result.Value.Should().Be(42);
+
+        source.Value = 99;
+        result.Value.Should().Be(42);
+    }
+
+    [Fact]
+    public void Map_GenericAndRuntimeOverloads_ReturnEquivalentResults()
+    {
+        var source = new SimpleSource { Value = 55 };
+
+        var genericResult = _handler.Map<SimpleSource, SimpleTarget>(source);
+        var runtimeResult = (SimpleTarget)_handler.Map(source, typeof(SimpleSource), typeof(SimpleTarget));
+
+        genericResult.Value.Should().Be(55);
+        runtimeResult.Value.Should().Be(55);
     }
 
     private class SimpleSource

@@ -35,6 +35,7 @@ Primary targets:
 What to verify:
 - Correct mapping output and null behavior
 - Runtime and generic API compatibility
+- Option B overload parity: `Map<TSource,TTarget>` (typed fast path) and `Map(object, Type, Type)` return equivalent mapping output for the same source/target pair
 - Runtime API guardrail behavior for invalid source/sourceType combinations
 - First-writer-wins registration semantics
 - Cache-hit behavior (factory cache and registry cache)

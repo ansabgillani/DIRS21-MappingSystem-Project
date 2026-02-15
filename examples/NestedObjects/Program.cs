@@ -19,7 +19,12 @@ var googleReservation = new GoogleReservationWithGuest
 };
 
 var mappedReservation = handler.Map<GoogleReservationWithGuest, ReservationWithGuest>(googleReservation);
+var runtimeMappedReservation = (ReservationWithGuest)handler.Map(
+	googleReservation,
+	typeof(GoogleReservationWithGuest),
+	typeof(ReservationWithGuest));
 Console.WriteLine($"Reservation: {mappedReservation.ReservationId}, Guest: {mappedReservation.Guest?.FullName}");
+Console.WriteLine($"Runtime Reservation: {runtimeMappedReservation.ReservationId}, Guest: {runtimeMappedReservation.Guest?.FullName}");
 
 var googleReservationBatch = new List<GoogleReservationWithGuest>
 {

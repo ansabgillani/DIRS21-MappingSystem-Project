@@ -36,7 +36,18 @@ services.AddGooglePartnerMappings();
 var provider = services.BuildServiceProvider();
 
 var handler = provider.GetRequiredService<IMapHandler>();
-var target = handler.Map<GoogleReservation, Reservation>(new GoogleReservation());
+var source = new GoogleReservation { ReservationCode = "R-100", PrimaryGuestName = "Alex" };
+
+var genericTarget = handler.Map<GoogleReservation, Reservation>(source);
+var runtimeTarget = (Reservation)handler.Map(source, typeof(GoogleReservation), typeof(Reservation));
+
+Console.WriteLine($"Parity: {genericTarget.ReservationId == runtimeTarget.ReservationId}");
+
+var sameTypeSource = new Reservation { ReservationId = "ID-1", GuestName = "Original" };
+var sameTypeCopy = handler.Map<Reservation, Reservation>(sameTypeSource);
+sameTypeSource.GuestName = "Changed";
+
+Console.WriteLine($"Deep Copy: {ReferenceEquals(sameTypeSource, sameTypeCopy) == false}");
 ```
 
 ### Partner Mapper Registration
@@ -89,9 +100,11 @@ Convention priority order:
 4. `PropertyConvention` (automatic property mapping)
 
 Runtime behavior notes:
+- `Map<TSource, TTarget>(TSource source)` uses a typed fast path (typed registry lookup + typed mapper delegate invocation) for lower per-call overhead.
 - `MappingExecutionContext` uses `AsyncLocal` context for nested/collection recursion, scoped to the current logical flow.
 - Runtime `Map(object, Type, Type)` validates that `source` is assignable to `sourceType` and fails fast on invalid usage.
 - Explicit `ITypeMapper<,>` resolution is scope-safe and resolved per mapping invocation.
+- `IdentityConvention` maps same-type value-like data as pass-through and deep-copies mutable reference objects via expression mapping.
 
 Implementation utilities are grouped under `src/Core/Implementation/Utilities` and referenced by conventions/handlers to keep reflection and invocation helpers centralized.
 

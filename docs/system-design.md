@@ -53,20 +53,20 @@ Partner-specific mappings are registered separately (e.g., `AddGooglePartnerMapp
 ## 5. Mapping Flow
 ### Request Path
 1. Caller invokes `Map<TSource,TTarget>(source)`.
-2. `MapHandler` checks `MapperRegistry` for runtime mapper object.
-3. On registry miss, `MapperFactory.CreateMapper(sourceType, targetType)` is called.
+2. `MapHandler` generic fast path checks typed mapper in `MapperRegistry`.
+3. On registry miss, `MapperFactory.CreateMapper<TSource,TTarget>()` is called.
 4. `MapperFactory` checks `MappingCache` for compiled delegate.
 5. On cache miss, factory evaluates conventions and compiles expression.
 6. Factory wraps compiled delegate into `CompiledMapper<TSource,TTarget>`.
 7. `MapHandler` registers compiled mapper in `MapperRegistry`.
-8. Mapper executes and returns target instance.
+8. Typed mapper executes and returns target instance.
 9. `MappingDiagnostics` is updated for new registrations.
 
 ### Runtime `Map(object, Type, Type)`
-- Executes the same registry/factory flow directly using runtime type pair and mapper object invocation.
+- Executes a runtime-safe flow using runtime type pair lookup and object mapper invocation.
 
 ## 6. Convention Resolution Rules
-1. **IdentityConvention**: source type == target type -> returns source directly.
+1. **IdentityConvention**: source type == target type -> pass-through for `string`/value types, deep-copy for mutable reference objects.
 2. **TypeMapperConvention**: uses explicitly registered `ITypeMapper<TSource,TTarget>`.
 3. **CollectionMappingConvention**: maps `List<TSource>` -> `List<TTarget>` element-by-element.
 4. **PropertyConvention**: convention-based property mapping by case-insensitive name + exact type match.

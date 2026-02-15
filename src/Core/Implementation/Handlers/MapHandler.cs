@@ -32,7 +32,26 @@ public class MapHandler : IMapHandler
             return default!;
         }
 
-        return (TTarget)Map(source!, typeof(TSource), typeof(TTarget));
+        return ExecuteWithContext(() =>
+        {
+            var sourceType = typeof(TSource);
+            var targetType = typeof(TTarget);
+
+            LogMappingAttempt(sourceType, targetType);
+
+            if (!_mapperRegistry.TryGetMapper<TSource, TTarget>(out var mapper) || mapper == null)
+            {
+                LogCacheMiss(sourceType, targetType);
+
+                mapper = _mapperFactory.CreateMapper<TSource, TTarget>();
+                _mapperRegistry.Register(mapper);
+
+                RecordRegistration(sourceType, targetType);
+                LogRegisteredMapper(sourceType, targetType);
+            }
+
+            return mapper(source);
+        });
     }
 
     public object Map(object source, Type sourceType, Type targetType)
@@ -52,39 +71,63 @@ public class MapHandler : IMapHandler
                 nameof(source));
         }
 
+        return ExecuteWithContext(() =>
+        {
+            LogMappingAttempt(sourceType, targetType);
+
+            if (!_mapperRegistry.TryGetMapper(sourceType, targetType, out var mapper) || mapper == null)
+            {
+                LogCacheMiss(sourceType, targetType);
+
+                mapper = _mapperFactory.CreateMapper(sourceType, targetType);
+                _mapperRegistry.Register(sourceType, targetType, mapper);
+
+                RecordRegistration(sourceType, targetType);
+                LogRegisteredMapper(sourceType, targetType);
+            }
+
+            return MapperInvocationUtilities.ExecuteMapper(mapper, source);
+        });
+    }
+
+    private T ExecuteWithContext<T>(Func<T> action)
+    {
         MappingExecutionContext.TryGetCurrentHandler(out var previousHandler);
         MappingExecutionContext.SetCurrentHandler(this);
 
         try
         {
-            _logger.LogDebug("Mapping {SourceType} -> {TargetType}", sourceType.Name, targetType.Name);
-
-            if (!_mapperRegistry.TryGetMapper(sourceType, targetType, out var mapper) || mapper == null)
-            {
-                _logger.LogInformation(
-                    "Cache miss: Creating mapper {SourceType} -> {TargetType}",
-                    sourceType.Name,
-                    targetType.Name);
-
-                mapper = _mapperFactory.CreateMapper(sourceType, targetType);
-                _mapperRegistry.Register(sourceType, targetType, mapper);
-
-                if (_diagnostics != null)
-                {
-                    _diagnostics.RecordRegistration(sourceType, targetType);
-                }
-
-                _logger.LogInformation(
-                    "Registered mapper: {SourceType} -> {TargetType}",
-                    sourceType.Name,
-                    targetType.Name);
-            }
-
-            return MapperInvocationUtilities.ExecuteMapper(mapper, source);
+            return action();
         }
         finally
         {
             MappingExecutionContext.SetCurrentHandler(previousHandler);
         }
+    }
+
+    private void RecordRegistration(Type sourceType, Type targetType)
+    {
+        _diagnostics?.RecordRegistration(sourceType, targetType);
+    }
+
+    private void LogMappingAttempt(Type sourceType, Type targetType)
+    {
+        _logger.LogDebug("Mapping {SourceType} -> {TargetType}", sourceType.Name, targetType.Name);
+    }
+
+    private void LogCacheMiss(Type sourceType, Type targetType)
+    {
+        _logger.LogInformation(
+            "Cache miss: Creating mapper {SourceType} -> {TargetType}",
+            sourceType.Name,
+            targetType.Name);
+    }
+
+    private void LogRegisteredMapper(Type sourceType, Type targetType)
+    {
+        _logger.LogInformation(
+            "Registered mapper: {SourceType} -> {TargetType}",
+            sourceType.Name,
+            targetType.Name);
     }
 }

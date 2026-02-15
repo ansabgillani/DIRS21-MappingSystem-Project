@@ -21,10 +21,26 @@ var googleReservation = new GoogleReservation
 };
 var mappedReservation = handler.Map<GoogleReservation, Reservation>(googleReservation);
 
-Console.WriteLine($"Mapped: {mappedReservation.ReservationId} / {mappedReservation.GuestName}");
+Console.WriteLine($"Generic Map: {mappedReservation.ReservationId} / {mappedReservation.GuestName}");
 
 var runtimeMapped = (Reservation)handler.Map(googleReservation, typeof(GoogleReservation), typeof(Reservation));
-Console.WriteLine($"Runtime Mapped: {runtimeMapped.ReservationId} / {runtimeMapped.GuestName}");
+Console.WriteLine($"Runtime Map: {runtimeMapped.ReservationId} / {runtimeMapped.GuestName}");
+Console.WriteLine($"Parity Check: {mappedReservation.ReservationId == runtimeMapped.ReservationId}");
+
+var sourceReservation = new Reservation
+{
+	ReservationId = "IDENTITY-1",
+	GuestName = "Deep Copy Guest",
+	CheckInDate = DateTime.UtcNow.AddDays(5),
+	CheckOutDate = DateTime.UtcNow.AddDays(6),
+	NumberOfGuests = 2
+};
+
+var copiedReservation = handler.Map<Reservation, Reservation>(sourceReservation);
+sourceReservation.GuestName = "Mutated After Map";
+
+Console.WriteLine($"Identity Deep Copy: {ReferenceEquals(sourceReservation, copiedReservation) == false}");
+Console.WriteLine($"Copied GuestName (unchanged): {copiedReservation.GuestName}");
 
 try
 {

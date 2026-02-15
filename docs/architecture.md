@@ -26,7 +26,7 @@ Because explicit mappers are part of the strategy pipeline, partner-specific beh
 
 ### 1.2 Fallback behavior (what happens if no explicit mapper exists)
 The system resolves mapping strategies in this order:
-1. **IdentityConvention**: same source and target type -> returns source.
+1. **IdentityConvention**: same source and target type -> pass-through for value-like types (`string`/value types), deep-copy for mutable reference objects.
 2. **TypeMapperConvention**: uses registered explicit `ITypeMapper<,>`.
 3. **CollectionMappingConvention**: maps `List<TSource>` to `List<TTarget>`.
 4. **PropertyConvention**: maps matching property names/types.
@@ -61,6 +61,8 @@ This order is critical: explicit partner mappers always win over convention fall
 
 ## 4) Runtime Mapping Flow
 1. Client calls `MapHandler.Map(source, sourceType, targetType)` (or generic overload).
+    - Generic overload uses a typed fast path.
+    - Runtime overload uses runtime type pair lookup and object-safe mapper invocation.
 2. `MapHandler` asks `MapperRegistry` for an existing runtime mapper.
 3. If missing, `MapHandler` requests creation from `MapperFactory`.
 4. `MapperFactory` checks `MappingCache` for a compiled delegate.

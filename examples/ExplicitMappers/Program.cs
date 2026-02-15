@@ -21,5 +21,8 @@ var googleReservation = new GoogleReservation
 	NumberOfGuests = 2
 };
 var mappedReservation = handler.Map<GoogleReservation, Reservation>(googleReservation);
+var runtimeMappedReservation = (Reservation)handler.Map(googleReservation, typeof(GoogleReservation), typeof(Reservation));
 
-Console.WriteLine(mappedReservation.GuestName);
+Console.WriteLine($"Generic Explicit Mapper: {mappedReservation.GuestName}");
+Console.WriteLine($"Runtime Explicit Mapper: {runtimeMappedReservation.GuestName}");
+Console.WriteLine($"Parity Check: {mappedReservation.GuestName == runtimeMappedReservation.GuestName}");
