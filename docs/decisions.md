@@ -84,9 +84,9 @@ Enables adding new partner behavior without modifying core framework classes.
 
 ---
 
-## Decision 5: Static Accessor for Nested Mapping (Current)
+## Decision 5: AsyncLocal Execution Context for Nested Mapping (Current)
 ### Chosen
-Use static MapHandlerAccessor for recursive nested/collection expression execution.
+Use `MappingExecutionContext` (`AsyncLocal<IMapHandler?>`) for recursive nested/collection expression execution.
 
 ### Why
 Maintains simple compiled delegate signatures and low per-map overhead.

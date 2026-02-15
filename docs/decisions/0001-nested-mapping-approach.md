@@ -5,24 +5,24 @@ Users need to map objects with nested complex properties (for example, Order -> 
 We must decide how generated expressions access IMapHandler for recursive mapping.
 
 ## Decision
-Use static `MapHandlerAccessor.Instance` to provide IMapHandler to generated expressions.
+Use `MappingExecutionContext.CurrentHandler` backed by `AsyncLocal<IMapHandler?>` to provide context-scoped handler access for generated expressions.
 
 ## Alternatives
 
-### Option A: Static Accessor (CHOSEN)
+### Option A: AsyncLocal Execution Context (CHOSEN)
 ```csharp
-var handler = MapHandlerAccessor.Instance;
+var handler = MappingExecutionContext.CurrentHandler;
 target.Nested = handler.Map<TSource, TTarget>(source.Nested);
 ```
 
 Pros:
 - Simple expression generation
 - No signature changes to compiled delegates
-- Works with current caching architecture
+- Scoped to logical async execution flow
 
 Cons:
-- Static mutable state
-- Could cause issues in parallel test execution
+- Still context-driven global access pattern
+- Requires execution context to flow correctly in custom threading scenarios
 - Requires MapHandler initialization
 
 ### Option B: Pass IMapHandler as Parameter
@@ -57,17 +57,17 @@ Cons:
 
 ## Consequences
 - MapHandler must be instantiated before any mapping.
-- Static state requires careful test setup/teardown.
-- Parallel test suites may require process isolation.
+- Execution context must be present for recursive nested/collection mapping.
+- Parallel test suites should preserve async context flow.
 
 ## Performance Impact
-- Near-zero overhead static field access.
+- Near-zero overhead `AsyncLocal` access.
 - No per-map closure allocations.
 
 ## Risks
-- Multiple DI containers share last-constructed MapHandler.
-- Parallel testing may need additional safeguards.
+- Async context flow can be lost if custom thread handoff bypasses execution context.
+- Multiple DI containers still require deterministic initialization in host composition.
 
 ## Future Improvements
 - Consider parameterized mapper delegate signatures in a future phase.
-- Add `MapHandlerAccessor.Reset()` utility for test cleanup.
+- Consider explicit handler-parameter mapping delegates if strict isolation is required.

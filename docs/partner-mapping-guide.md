@@ -99,6 +99,13 @@ Google partner implementation in this repository follows this pattern with:
 - Partner DTOs in `src/Partners/Google/Models`
 - Partner mappers in `src/Partners/Google/Implementation`
 
+Typical startup composition in this repository:
+
+```csharp
+services.AddMapping();
+services.AddGooglePartnerMappings();
+```
+
 ---
 
 ## 4) Use the Mapper Through `IMapHandler`

@@ -32,7 +32,7 @@ This document captures the explicit and implicit assumptions behind the current 
 ## 6) Concurrency and State Assumptions
 - Concurrent mapping calls are normal and expected under load.
 - Concurrent first-map races are acceptable (first writer wins in caches/registries).
-- Static access used for nested expression recursion is acceptable in current deployment model.
+- AsyncLocal execution context access used for nested expression recursion is acceptable in current deployment model.
 
 ## 7) Observability Assumptions
 - Logging should be available in production hosts and configurable by level.
@@ -49,7 +49,7 @@ This document captures the explicit and implicit assumptions behind the current 
 - PII handling requirements are enforced at host/business layers, not by mapping primitives.
 
 ## 10) Known Constraint Assumptions
-- Static MapHandlerAccessor introduces global mutable state by design.
+- MappingExecutionContext depends on async execution-context flow for nested/collection recursion.
 - Multiple DI container scenarios may require careful initialization ordering.
 - Out-of-box conventions are intentionally conservative rather than conversion-heavy.
 

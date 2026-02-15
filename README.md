@@ -39,17 +39,16 @@ var handler = provider.GetRequiredService<IMapHandler>();
 var target = handler.Map<GoogleReservation, Reservation>(new GoogleReservation());
 ```
 
-### Explicit Mapper
+### Partner Mapper Registration
 
 ```csharp
-public class CustomMapper : ITypeMapper<SourceDto, TargetDto>
-{
-	public TargetDto Map(SourceDto source) => new() { Name = source.Name.ToUpperInvariant() };
-}
+using MappingSystems.Partners.Google.Extensions;
 
 services.AddMapping();
 services.AddGooglePartnerMappings();
 ```
+
+`AddGooglePartnerMappings()` registers Google-specific `ITypeMapper<,>` implementations from `src/Partners/Google/Implementation`.
 
 ## Performance
 
@@ -95,6 +94,37 @@ Runtime behavior notes:
 - Explicit `ITypeMapper<,>` resolution is scope-safe and resolved per mapping invocation.
 
 Implementation utilities are grouped under `src/Core/Implementation/Utilities` and referenced by conventions/handlers to keep reflection and invocation helpers centralized.
+
+## Key Classes and Methods
+
+- `IMapHandler` / `MapHandler`
+	- `Map<TSource, TTarget>(TSource source)` for generic mapping.
+	- `Map(object source, Type sourceType, Type targetType)` for runtime type-based mapping.
+- `IMapperFactory` / `MapperFactory`
+	- `CreateMapper(Type sourceType, Type targetType)` for runtime mapper creation.
+- `IMapperRegistry` / `MapperRegistry`
+	- `TryGetMapper(...)` and `Register(...)` for cached mapper lifecycle.
+- Conventions
+	- `IdentityConvention`, `TypeMapperConvention`, `CollectionMappingConvention`, `PropertyConvention`.
+- Diagnostics
+	- `IMappingDiagnostics` and `MappingDiagnostics` for cache and registration insights.
+
+## Extending the System
+
+- Create partner DTOs in `src/Partners/<Partner>/Models`.
+- Add explicit `ITypeMapper<TSource, TTarget>` implementations in `src/Partners/<Partner>/Implementation`.
+- Add a partner registration extension in `src/Partners/<Partner>/Extensions`.
+- Register in composition root:
+	- `services.AddMapping();`
+	- `services.Add<PartnerName>PartnerMappings();`
+
+Detailed extension guidance is in [docs/partner-mapping-guide.md](docs/partner-mapping-guide.md).
+
+## Assumptions and Limitations
+
+- Assumptions are documented in [docs/assumptions.md](docs/assumptions.md).
+- Design constraints and trade-offs are documented in [docs/decisions.md](docs/decisions.md).
+- Current limitations include conservative property matching and `List<T>`-focused collection convention behavior (see [docs/system-design.md](docs/system-design.md)).
 
 ## Documentation Index
 
