@@ -30,8 +30,6 @@ services.AddMapping();
 var provider = services.BuildServiceProvider();
 var handler = provider.GetRequiredService<IMapHandler>();
 
-var target = handler.Map<SourceDto, TargetDto>(new SourceDto());
-
 object data = new SourceDto();
 var targetFromObject = handler.Map<SourceDto, TargetDto>(data);
 
