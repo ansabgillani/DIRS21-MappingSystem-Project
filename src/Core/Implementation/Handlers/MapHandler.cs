@@ -1,6 +1,7 @@
 using MappingSystem.Core;
 using MappingSystem.Implementation.Utilities;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace MappingSystem.Implementation;
 
@@ -54,6 +55,23 @@ public class MapHandler : IMapHandler
         });
     }
 
+    public TTarget Map<TSource, TTarget>(object data)
+    {
+        if (data == null)
+        {
+            return default!;
+        }
+
+        if (data is not TSource typedSource)
+        {
+            throw new ArgumentException(
+                $"Input object type {data.GetType().Name} is not assignable to expected source type {typeof(TSource).Name}.",
+                nameof(data));
+        }
+
+        return Map<TSource, TTarget>(typedSource);
+    }
+
     public object Map(object source, Type sourceType, Type targetType)
     {
         ArgumentNullException.ThrowIfNull(sourceType);
@@ -88,6 +106,66 @@ public class MapHandler : IMapHandler
 
             return MapperInvocationUtilities.ExecuteMapper(mapper, source);
         });
+    }
+
+    public object Map(object data, string sourceType, string targetType)
+    {
+        ArgumentNullException.ThrowIfNull(sourceType);
+        ArgumentNullException.ThrowIfNull(targetType);
+
+        var resolvedSourceType = ResolveType(sourceType);
+        var resolvedTargetType = ResolveType(targetType);
+
+        return Map(data, resolvedSourceType, resolvedTargetType);
+    }
+
+    private static Type ResolveType(string typeName)
+    {
+        if (string.IsNullOrWhiteSpace(typeName))
+        {
+            throw new ArgumentException("Type name cannot be null, empty, or whitespace.", nameof(typeName));
+        }
+
+        var resolved = Type.GetType(typeName, throwOnError: false, ignoreCase: true);
+        if (resolved != null)
+        {
+            return resolved;
+        }
+
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var directMatch = assembly.GetType(typeName, throwOnError: false, ignoreCase: true);
+            if (directMatch != null)
+            {
+                return directMatch;
+            }
+
+            var nameMatch = GetLoadableTypes(assembly)
+                .FirstOrDefault(type =>
+                    string.Equals(type.Name, typeName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(type.FullName, typeName, StringComparison.OrdinalIgnoreCase));
+
+            if (nameMatch != null)
+            {
+                return nameMatch;
+            }
+        }
+
+        throw new ArgumentException(
+            $"Unable to resolve type '{typeName}'. Use an assembly-qualified name, full type name, or unique type name from loaded assemblies.",
+            nameof(typeName));
+    }
+
+    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            return ex.Types.Where(type => type != null)!;
+        }
     }
 
     private T ExecuteWithContext<T>(Func<T> action)

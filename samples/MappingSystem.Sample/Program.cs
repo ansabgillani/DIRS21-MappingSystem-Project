@@ -29,11 +29,21 @@ var googleReservation = new GoogleReservation
 
 Console.WriteLine("Mapping Google -> Internal Model...");
 var internalReservation = handler.Map<GoogleReservation, Reservation>(googleReservation);
+object objectPayload = googleReservation;
+var internalReservationFromObject = handler.Map<GoogleReservation, Reservation>(objectPayload);
+var internalReservationFromRuntimeType = (Reservation)handler.Map(objectPayload, typeof(GoogleReservation), typeof(Reservation));
+var internalReservationFromStringType = (Reservation)handler.Map(
+    objectPayload,
+    typeof(GoogleReservation).FullName!,
+    typeof(Reservation).FullName!);
 
 Console.WriteLine($"ReservationId: {internalReservation.ReservationId}");
 Console.WriteLine($"GuestName: {internalReservation.GuestName}");
 Console.WriteLine($"CheckIn: {internalReservation.CheckInDate:yyyy-MM-dd}");
 Console.WriteLine($"Guests: {internalReservation.GuestCount}");
+Console.WriteLine($"Object Generic Overload: {internalReservationFromObject.ReservationId}");
+Console.WriteLine($"Runtime Type Overload: {internalReservationFromRuntimeType.ReservationId}");
+Console.WriteLine($"Runtime String Overload: {internalReservationFromStringType.ReservationId}");
 Console.WriteLine();
 
 Console.WriteLine("Mapping again (cached)...");

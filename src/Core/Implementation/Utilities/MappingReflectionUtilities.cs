@@ -13,7 +13,8 @@ public static class MappingReflectionUtilities
         .Single(method =>
             method.Name == nameof(IMapHandler.Map)
             && method.IsGenericMethodDefinition
-            && method.GetParameters().Length == 1);
+            && method.GetParameters().Length == 1
+            && method.GetParameters()[0].ParameterType.IsGenericParameter);
 
     public static MethodInfo EnumerableSelectMethodDefinition { get; } = typeof(Enumerable)
         .GetMethods()

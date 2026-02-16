@@ -104,6 +104,74 @@ public class MapHandlerTests
     }
 
     [Fact]
+    public void Map_NonGeneric_WithNullSource_ReturnsDefault()
+    {
+        var result = _handler.Map(null!, typeof(SimpleSource), typeof(SimpleTarget));
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void Map_GenericObjectOverload_WorksCorrectly()
+    {
+        object source = new SimpleSource { Value = 77 };
+
+        var result = _handler.Map<SimpleSource, SimpleTarget>(source);
+
+        result.Value.Should().Be(77);
+    }
+
+    [Fact]
+    public void Map_GenericObjectOverload_WithMismatchedSourceType_ThrowsArgumentException()
+    {
+        object source = new SimpleTarget { Value = 10 };
+
+        var act = () => _handler.Map<SimpleSource, SimpleTarget>(source);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Map_StringTypeOverload_WorksCorrectly()
+    {
+        var source = new SimpleSource { Value = 64 };
+        var sourceType = typeof(SimpleSource).FullName!;
+        var targetType = typeof(SimpleTarget).FullName!;
+
+        var result = (SimpleTarget)_handler.Map(source, sourceType, targetType);
+
+        result.Value.Should().Be(64);
+    }
+
+    [Fact]
+    public void Map_StringTypeOverload_WithUnknownType_ThrowsArgumentException()
+    {
+        var source = new SimpleSource { Value = 64 };
+
+        var act = () => _handler.Map(source, "Unknown.Source.Type", typeof(SimpleTarget).FullName!);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Map_StringTypeOverload_WithMismatchedSourceType_ThrowsArgumentException()
+    {
+        var source = new SimpleTarget { Value = 10 };
+
+        var act = () => _handler.Map(source, typeof(SimpleSource).FullName!, typeof(SimpleTarget).FullName!);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Map_StringTypeOverload_WithNullSource_ReturnsDefault()
+    {
+        var result = _handler.Map(null!, typeof(SimpleSource).FullName!, typeof(SimpleTarget).FullName!);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
     public void Map_SameType_ReturnsDeepCopyInstance()
     {
         var source = new SimpleSource { Value = 42 };
@@ -127,6 +195,26 @@ public class MapHandlerTests
 
         genericResult.Value.Should().Be(55);
         runtimeResult.Value.Should().Be(55);
+    }
+
+    [Fact]
+    public void Map_AllFourOverloads_ReturnEquivalentResults()
+    {
+        var source = new SimpleSource { Value = 88 };
+        object data = source;
+
+        var genericTyped = _handler.Map<SimpleSource, SimpleTarget>(source);
+        var genericObject = _handler.Map<SimpleSource, SimpleTarget>(data);
+        var runtimeType = (SimpleTarget)_handler.Map(data, typeof(SimpleSource), typeof(SimpleTarget));
+        var runtimeString = (SimpleTarget)_handler.Map(
+            data,
+            typeof(SimpleSource).FullName!,
+            typeof(SimpleTarget).FullName!);
+
+        genericTyped.Value.Should().Be(88);
+        genericObject.Value.Should().Be(88);
+        runtimeType.Value.Should().Be(88);
+        runtimeString.Value.Should().Be(88);
     }
 
     private class SimpleSource

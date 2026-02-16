@@ -23,7 +23,7 @@ var googleReservation = new GoogleReservation
 var iterations = 200_000;
 
 handler.Map<GoogleReservation, Reservation>(googleReservation);
-(Reservation)handler.Map(googleReservation, typeof(GoogleReservation), typeof(Reservation));
+_ = (Reservation)handler.Map(googleReservation, typeof(GoogleReservation), typeof(Reservation));
 
 var genericSw = Stopwatch.StartNew();
 for (var i = 0; i < iterations; i++)

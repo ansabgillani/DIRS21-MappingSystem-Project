@@ -19,7 +19,7 @@ This document captures the explicit and implicit assumptions behind the current 
 - Teams integrating partners can create their own extension methods for registration.
 
 ## 4) Mapping Semantics Assumptions
-- Same-type mapping should return source identity where applicable.
+- Same-type mapping returns pass-through for value-like types and deep-copy for mutable reference objects.
 - Property convention mapping requires exact type match and case-insensitive property-name match.
 - Collection convention targets List<T> to List<T> semantics.
 - Nested mapping behavior uses recursive map invocation with null propagation.

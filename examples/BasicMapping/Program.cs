@@ -23,9 +23,20 @@ var mappedReservation = handler.Map<GoogleReservation, Reservation>(googleReserv
 
 Console.WriteLine($"Generic Map: {mappedReservation.ReservationId} / {mappedReservation.GuestName}");
 
+object objectPayload = googleReservation;
+var objectGenericMapped = handler.Map<GoogleReservation, Reservation>(objectPayload);
+Console.WriteLine($"Generic<Object> Map: {objectGenericMapped.ReservationId} / {objectGenericMapped.GuestName}");
+
 var runtimeMapped = (Reservation)handler.Map(googleReservation, typeof(GoogleReservation), typeof(Reservation));
 Console.WriteLine($"Runtime Map: {runtimeMapped.ReservationId} / {runtimeMapped.GuestName}");
-Console.WriteLine($"Parity Check: {mappedReservation.ReservationId == runtimeMapped.ReservationId}");
+
+var runtimeStringMapped = (Reservation)handler.Map(
+	objectPayload,
+	typeof(GoogleReservation).FullName!,
+	typeof(Reservation).FullName!);
+Console.WriteLine($"Runtime<String> Map: {runtimeStringMapped.ReservationId} / {runtimeStringMapped.GuestName}");
+
+Console.WriteLine($"Parity Check (all overloads): {mappedReservation.ReservationId == objectGenericMapped.ReservationId && mappedReservation.ReservationId == runtimeMapped.ReservationId && mappedReservation.ReservationId == runtimeStringMapped.ReservationId}");
 
 var sourceReservation = new Reservation
 {
@@ -33,7 +44,7 @@ var sourceReservation = new Reservation
 	GuestName = "Deep Copy Guest",
 	CheckInDate = DateTime.UtcNow.AddDays(5),
 	CheckOutDate = DateTime.UtcNow.AddDays(6),
-	NumberOfGuests = 2
+	GuestCount = 2
 };
 
 var copiedReservation = handler.Map<Reservation, Reservation>(sourceReservation);

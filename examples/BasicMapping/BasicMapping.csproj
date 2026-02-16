@@ -4,6 +4,7 @@
     <ProjectReference Include="..\..\src\Core\Foundation\MappingSystem.Core.csproj" />
     <ProjectReference Include="..\..\src\Core\Extensions\MappingSystem.Extensions.csproj" />
     <ProjectReference Include="..\..\src\Models\MappingSystems.Models.csproj" />
+    <ProjectReference Include="..\..\src\Partners\Google\MappingSystems.Partners.Google.csproj" />
   </ItemGroup>
 
   <ItemGroup>

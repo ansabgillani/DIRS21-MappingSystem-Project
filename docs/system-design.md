@@ -62,8 +62,17 @@ Partner-specific mappings are registered separately (e.g., `AddGooglePartnerMapp
 8. Typed mapper executes and returns target instance.
 9. `MappingDiagnostics` is updated for new registrations.
 
+### Generic `Map<TSource, TTarget>(object data)`
+- Accepts object-based input while preserving compile-time target typing.
+- Validates assignability to `TSource` in `MapHandler` before dispatching to the typed fast path.
+- Reduces caller-side casting in pipelines where payloads are handled as `object`.
+
 ### Runtime `Map(object, Type, Type)`
 - Executes a runtime-safe flow using runtime type pair lookup and object mapper invocation.
+
+### Runtime `Map(object, string, string)`
+- Resolves `sourceType` and `targetType` from string names (assembly-qualified name, full type name, or unique loaded type name).
+- Delegates to `Map(object, Type, Type)` after resolution and uses the same mapper cache and validation flow.
 
 ## 6. Convention Resolution Rules
 1. **IdentityConvention**: source type == target type -> pass-through for `string`/value types, deep-copy for mutable reference objects.
@@ -103,6 +112,8 @@ If no convention can map, `MappingNotFoundException` is thrown with actionable g
 - `MappingCompilationException`: wraps convention/expression failures.
 - `MappingNotFoundException`: emitted when all conventions are exhausted; includes suggestions and convention count.
 - Runtime `Map(object, Type, Type)` throws `ArgumentException` when `source` is not assignable to provided `sourceType`.
+- Runtime `Map(object, string, string)` throws `ArgumentException` when a type name cannot be resolved.
+- Generic `Map<TSource, TTarget>(object data)` throws `ArgumentException` when `data` is not assignable to `TSource`.
 
 ## 11. Observability
 ### Logging
